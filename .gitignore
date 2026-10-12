@@ -1,0 +1,4 @@
+.env
+bundle/
+*.tar
+*.tar.gz
