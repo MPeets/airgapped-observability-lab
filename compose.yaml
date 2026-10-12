@@ -1,6 +1,19 @@
 name: observability-lab
 
-services:
+services:  
+  node-exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.9.1}
+    container_name: node-exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
   prometheus:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.5.0}
     container_name: prometheus
