@@ -1,6 +1,26 @@
 name: observability-lab
 
 services:  
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-12.1.0}
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      # Nothing should try to reach the internet in an air-gapped network
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
   node-exporter:
     image: prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.9.1}
     container_name: node-exporter
@@ -31,3 +51,4 @@ services:
 
 volumes:
   prometheus-data:
+  grafana-data:
