@@ -18,6 +18,8 @@ Prometheus: http://localhost:9090 (Status > Targets should show the prometheus j
 | Prometheus    | Scrapes and stores metrics           | 127.0.0.1:9090     |
 | node_exporter | Linux host metrics (CPU, memory, disk) | Internal network only |
 | Grafana       | Dashboards, provisioned as code      | 127.0.0.1:3000     |
+| Alertmanager   | Routing, grouping, inhibition of alerts | 127.0.0.1:9093 |
+| webhook-logger | Lab stand-in for a real notification receiver | Internal network only |
 
 ## Status
 
