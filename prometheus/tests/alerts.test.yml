@@ -1,0 +1,118 @@
+rule_files:
+  - ../rules/recording.yml
+  - ../rules/alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Watchdog must always fire, otherwise the dead man's switch is useless
+  - interval: 1m
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: Watchdog
+        exp_alerts:
+          - exp_labels:
+              severity: none
+            exp_annotations:
+              summary: Always firing. Proves the whole alerting pipeline is alive.
+              description: If this alert stops arriving at the receiver, alerting itself is broken, even if everything else looks quiet.
+
+  # TargetDown: pending first, firing only after 2 minutes down
+  - interval: 1m
+    input_series:
+      - series: 'up{job="node", instance="host-a:9100"}'
+        values: '1 1 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: TargetDown
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: TargetDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: node
+              instance: host-a:9100
+            exp_annotations:
+              summary: "node target host-a:9100 is down"
+              description: "Prometheus has not been able to scrape host-a:9100 for more than 2 minutes."
+              runbook: docs/runbook.md#targetdown
+
+  # HostHighCpu: idle grows 3s per minute (5% idle, so 95% busy), sustained
+  - interval: 1m
+    input_series:
+      - series: 'node_cpu_seconds_total{job="node", instance="host-a:9100", cpu="0", mode="idle"}'
+        values: '0+3x30'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HostHighCpu
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: HostHighCpu
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: node
+              instance: host-a:9100
+            exp_annotations:
+              summary: "High CPU on host-a:9100"
+              description: "CPU has been above 90% for 10 minutes (currently 95%)."
+              runbook: docs/runbook.md#hosthighcpu
+
+  # HostDiskAlmostFull: 4% free
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{job="node", instance="host-a:9100", mountpoint="/", fstype="ext4", device="/dev/sda1"}'
+        values: '4x10'
+      - series: 'node_filesystem_size_bytes{job="node", instance="host-a:9100", mountpoint="/", fstype="ext4", device="/dev/sda1"}'
+        values: '100x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: HostDiskAlmostFull
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: node
+              instance: host-a:9100
+              mountpoint: /
+              fstype: ext4
+              device: /dev/sda1
+            exp_annotations:
+              summary: "Disk / on host-a:9100 is almost full"
+              description: "Only 4% free."
+              runbook: docs/runbook.md#hostdiskalmostfull
+
+  # HostDiskWillFillIn24h: 19% free and shrinking steadily, so it fires
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{job="node", instance="host-a:9100", mountpoint="/data", fstype="ext4", device="/dev/sdb1"}'
+        values: '19-0.1x60'
+      - series: 'node_filesystem_size_bytes{job="node", instance="host-a:9100", mountpoint="/data", fstype="ext4", device="/dev/sdb1"}'
+        values: '100x60'
+    alert_rule_test:
+      - eval_time: 45m
+        alertname: HostDiskWillFillIn24h
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: node
+              instance: host-a:9100
+              mountpoint: /data
+              fstype: ext4
+              device: /dev/sdb1
+            exp_annotations:
+              summary: "Disk /data on host-a:9100 will fill within 24h"
+              description: "Less than 20% free and the 6h trend says it runs out within a day."
+              runbook: docs/runbook.md#hostdiskwillfillin24h
+
+  # Negative case: low but stable disk must NOT trigger the trend alert
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{job="node", instance="host-a:9100", mountpoint="/data", fstype="ext4", device="/dev/sdb1"}'
+        values: '15x60'
+      - series: 'node_filesystem_size_bytes{job="node", instance="host-a:9100", mountpoint="/data", fstype="ext4", device="/dev/sdb1"}'
+        values: '100x60'
+    alert_rule_test:
+      - eval_time: 45m
+        alertname: HostDiskWillFillIn24h
+        exp_alerts: []
