@@ -1,5 +1,6 @@
 .env
-bundle/
+dist/
+vendor/
 *.tar
 *.tar.gz
 certs/

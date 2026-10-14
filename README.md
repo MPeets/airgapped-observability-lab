@@ -38,6 +38,21 @@ Prometheus picks it up automatically, no restart or reload.
         site: substation-north
         role: scada-server
 
+## Offline install
+
+On a machine with internet access (optionally put the windows_exporter MSI in vendor/ first):
+
+    ./scripts/bundle.sh
+
+Carry dist/observability-lab-<commit>.tar and its .sha256 file across, then on the offline host:
+
+    sha256sum -c observability-lab-<commit>.tar.sha256
+    tar -xf observability-lab-<commit>.tar
+    cd observability-lab-<commit>
+    ./install.sh
+
+The installer verifies every file and image before starting anything, and never pulls from a registry.
+
 ## Status
 
 Work in progress.
