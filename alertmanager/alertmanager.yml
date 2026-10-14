@@ -38,6 +38,11 @@ inhibit_rules:
     target_matchers: [alertname="HostDiskWillFillIn24h"]
     equal: [instance, mountpoint]
 
+  # Critical certificate alert already covers the 30-day warning for the same endpoint.
+  - source_matchers: [alertname="TLSCertExpiryCritical"]
+    target_matchers: [alertname="TLSCertExpiringSoon"]
+    equal: [instance]
+
 receivers:
   - name: default
     webhook_configs:

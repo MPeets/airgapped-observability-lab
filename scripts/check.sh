@@ -33,6 +33,8 @@ docker compose run --rm --no-deps -T --entrypoint sh alertmanager -c '
   route team     alertname=HostHighCpu severity=warning
   route oncall   alertname=ProbeFailed severity=critical
   route team     alertname=ProbeSlow severity=warning
+  route team     alertname=TLSCertExpiringSoon severity=warning
+  route oncall   alertname=TLSCertExpiryCritical severity=critical
   route default  alertname=SomethingUnlabelled
 '
 

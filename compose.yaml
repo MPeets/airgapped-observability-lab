@@ -81,8 +81,18 @@ services:
       - --config.file=/etc/blackbox_exporter/blackbox.yml
     volumes:
       - ./blackbox:/etc/blackbox_exporter:ro
+      - ./certs/public:/etc/lab-ca:ro
     cap_drop: [ALL]
     cap_add: [NET_RAW]
+    restart: unless-stopped
+
+  tls-demo:
+    image: python:${PYTHON_VERSION:-3.12.11-alpine3.22}
+    container_name: tls-demo
+    command: ["python", "-u", "/app/server.py"]
+    volumes:
+      - ./tools/tls-demo:/app:ro
+      - ./certs/tls-demo:/certs:ro
     restart: unless-stopped
 
 volumes:

@@ -20,3 +20,14 @@ modules:
     timeout: 5s
     tcp:
       preferred_ip_protocol: ip4
+
+  # HTTPS that must validate against the internal lab CA (no public CAs trusted).
+  # Exposes probe_ssl_earliest_cert_expiry for certificate lifecycle alerts.
+  https_internal_ca:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+      fail_if_not_ssl: true
+      tls_config:
+        ca_file: /etc/lab-ca/ca.crt

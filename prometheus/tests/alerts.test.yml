@@ -150,3 +150,59 @@ tests:
       - eval_time: 5m
         alertname: TargetDown
         exp_alerts: []
+
+  # Certificates: 20 days left -> warning only
+  - interval: 1m
+    input_series:
+      - series: 'probe_ssl_earliest_cert_expiry{job="blackbox-tls", instance="https://tls-demo:8443/", site="lab", service="tls-demo"}'
+        values: '1728000x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: TLSCertExpiringSoon
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: blackbox-tls
+              instance: https://tls-demo:8443/
+              site: lab
+              service: tls-demo
+            exp_annotations:
+              summary: "Certificate for https://tls-demo:8443/ expires in 20 days"
+              description: "Renew it before the 7-day critical threshold. Check whether renewal for this service is automated."
+              runbook: docs/runbook.md#tlscertexpiringsoon
+      - eval_time: 20m
+        alertname: TLSCertExpiryCritical
+        exp_alerts: []
+
+  # Certificates: 5 days left -> critical
+  - interval: 1m
+    input_series:
+      - series: 'probe_ssl_earliest_cert_expiry{job="blackbox-tls", instance="https://tls-demo:8443/", site="lab", service="tls-demo"}'
+        values: '432000x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: TLSCertExpiryCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: blackbox-tls
+              instance: https://tls-demo:8443/
+              site: lab
+              service: tls-demo
+            exp_annotations:
+              summary: "Certificate for https://tls-demo:8443/ expires in 5 days"
+              description: "Renew now. When it expires, clients that validate it will refuse to connect."
+              runbook: docs/runbook.md#tlscertexpirycritical
+
+  # Certificates: 90 days left -> nothing fires
+  - interval: 1m
+    input_series:
+      - series: 'probe_ssl_earliest_cert_expiry{job="blackbox-tls", instance="https://tls-demo:8443/", site="lab", service="tls-demo"}'
+        values: '7776000x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: TLSCertExpiringSoon
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: TLSCertExpiryCritical
+        exp_alerts: []

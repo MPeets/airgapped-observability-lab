@@ -68,3 +68,15 @@ scrape_configs:
       #     site: lab
       #     device_type: plc
     relabel_configs: *blackbox_relabel
+
+  - job_name: blackbox-tls
+    metrics_path: /probe
+    params:
+      module: [https_internal_ca]
+    static_configs:
+      - targets:
+          - https://tls-demo:8443/
+        labels:
+          site: lab
+          service: tls-demo
+    relabel_configs: *blackbox_relabel

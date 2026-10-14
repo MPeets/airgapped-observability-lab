@@ -6,7 +6,11 @@ Everything is pinned, configured as code, and installable from an offline bundle
 ## Quick start
 
     cp .env.example .env
+    
     Set GRAFANA_ADMIN_PASSWORD in .env before starting.
+
+    ./scripts/gen-lab-certs.sh      # lab CA + demo certificate (certs/ is gitignored)
+    
     docker compose up -d
 
 Prometheus: http://localhost:9090 (Status > Targets should show the prometheus job as UP)
@@ -21,6 +25,7 @@ Prometheus: http://localhost:9090 (Status > Targets should show the prometheus j
 | Alertmanager   | Routing, grouping, inhibition of alerts | 127.0.0.1:9093 |
 | webhook-logger | Lab stand-in for a real notification receiver | Internal network only |
 | blackbox_exporter | Probes from outside: HTTP, ICMP, TCP | Internal network only |
+| tls-demo | HTTPS endpoint signed by the lab CA, for certificate monitoring | Internal network only |
 
 ## Status
 

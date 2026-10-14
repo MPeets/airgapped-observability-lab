@@ -16,7 +16,7 @@ groups:
       - alert: TargetDown
         # Probe jobs excluded: their up only means the blackbox exporter answered.
         # Probe results are covered by ProbeFailed instead.
-        expr: up{job!~"blackbox-(http|icmp)"} == 0
+        expr: up{job!~"blackbox-(http|icmp|tls)"} == 0
         for: 2m
         labels:
           severity: critical
@@ -91,3 +91,25 @@ groups:
           summary: "{{ $labels.instance }} is answering slowly"
           description: "Average probe time over 5m is {{ $value | humanizeDuration }}."
           runbook: docs/runbook.md#probeslow
+
+  - name: certificates
+    rules:
+      - alert: TLSCertExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Certificate for {{ $labels.instance }} expires in {{ printf \"%.0f\" $value }} days"
+          description: "Renew it before the 7-day critical threshold. Check whether renewal for this service is automated."
+          runbook: docs/runbook.md#tlscertexpiringsoon
+
+      - alert: TLSCertExpiryCritical
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Certificate for {{ $labels.instance }} expires in {{ printf \"%.0f\" $value }} days"
+          description: "Renew now. When it expires, clients that validate it will refuse to connect."
+          runbook: docs/runbook.md#tlscertexpirycritical
