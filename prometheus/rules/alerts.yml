@@ -14,7 +14,9 @@ groups:
   - name: availability
     rules:
       - alert: TargetDown
-        expr: up == 0
+        # Probe jobs excluded: their up only means the blackbox exporter answered.
+        # Probe results are covered by ProbeFailed instead.
+        expr: up{job!~"blackbox-(http|icmp)"} == 0
         for: 2m
         labels:
           severity: critical
@@ -67,3 +69,25 @@ groups:
           summary: "Disk {{ $labels.mountpoint }} on {{ $labels.instance }} is almost full"
           description: "Only {{ $value | humanizePercentage }} free."
           runbook: docs/runbook.md#hostdiskalmostfull
+
+  - name: blackbox
+    rules:
+      - alert: ProbeFailed
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} probe to {{ $labels.instance }} is failing"
+          description: "{{ $labels.instance }} has not answered the {{ $labels.job }} probe for 2 minutes."
+          runbook: docs/runbook.md#probefailed
+
+      - alert: ProbeSlow
+        expr: avg_over_time(probe_duration_seconds[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} is answering slowly"
+          description: "Average probe time over 5m is {{ $value | humanizeDuration }}."
+          runbook: docs/runbook.md#probeslow

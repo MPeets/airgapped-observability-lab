@@ -31,6 +31,12 @@ docker compose run --rm --no-deps -T --entrypoint sh alertmanager -c '
   route oncall   alertname=TargetDown severity=critical
   route oncall   alertname=HostDiskAlmostFull severity=critical
   route team     alertname=HostHighCpu severity=warning
+  route oncall   alertname=ProbeFailed severity=critical
+  route team     alertname=ProbeSlow severity=warning
   route default  alertname=SomethingUnlabelled
 '
+
+echo "== Blackbox exporter =="
+docker compose run --rm --no-deps -T blackbox-exporter \
+  --config.file=/etc/blackbox_exporter/blackbox.yml --config.check
 echo "All checks passed."

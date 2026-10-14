@@ -20,6 +20,7 @@ Prometheus: http://localhost:9090 (Status > Targets should show the prometheus j
 | Grafana       | Dashboards, provisioned as code      | 127.0.0.1:3000     |
 | Alertmanager   | Routing, grouping, inhibition of alerts | 127.0.0.1:9093 |
 | webhook-logger | Lab stand-in for a real notification receiver | Internal network only |
+| blackbox_exporter | Probes from outside: HTTP, ICMP, TCP | Internal network only |
 
 ## Status
 

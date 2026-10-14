@@ -74,6 +74,17 @@ services:
       - ./tools/webhook-logger:/app:ro
     restart: unless-stopped
 
+  blackbox-exporter:
+    image: prom/blackbox-exporter:${BLACKBOX_VERSION:-v0.27.0}
+    container_name: blackbox-exporter
+    command:
+      - --config.file=/etc/blackbox_exporter/blackbox.yml
+    volumes:
+      - ./blackbox:/etc/blackbox_exporter:ro
+    cap_drop: [ALL]
+    cap_add: [NET_RAW]
+    restart: unless-stopped
+
 volumes:
   prometheus-data:
   grafana-data:

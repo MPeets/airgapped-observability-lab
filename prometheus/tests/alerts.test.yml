@@ -116,3 +116,37 @@ tests:
       - eval_time: 45m
         alertname: HostDiskWillFillIn24h
         exp_alerts: []
+
+  # ProbeFailed: an unreachable device fires after 2 minutes
+  - interval: 1m
+    input_series:
+      - series: 'probe_success{job="blackbox-icmp", instance="192.0.2.10", site="lab", device_type="plc"}'
+        values: '1 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: ProbeFailed
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: ProbeFailed
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: blackbox-icmp
+              instance: 192.0.2.10
+              site: lab
+              device_type: plc
+            exp_annotations:
+              summary: "blackbox-icmp probe to 192.0.2.10 is failing"
+              description: "192.0.2.10 has not answered the blackbox-icmp probe for 2 minutes."
+              runbook: docs/runbook.md#probefailed
+
+  # A failing scrape of a probe job must NOT be reported as TargetDown
+  # (it means the blackbox exporter is down, which its own job reports)
+  - interval: 1m
+    input_series:
+      - series: 'up{job="blackbox-http", instance="http://grafana:3000/api/health"}'
+        values: '0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: TargetDown
+        exp_alerts: []

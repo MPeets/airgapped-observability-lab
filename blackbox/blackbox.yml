@@ -1,0 +1,22 @@
+modules:
+  # Service answers HTTP with a 2xx status
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+      follow_redirects: true
+
+  # Device answers ping. Typical first check for OT equipment that has no HTTP
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
+
+  # Something is listening on a TCP port (e.g. Modbus 502, OPC UA 4840)
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: ip4
