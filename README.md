@@ -1,3 +1,5 @@
+![CI](https://github.com/MPeets/airgapped-observability-lab/actions/workflows/ci.yml/badge.svg)
+
 # airgapped-observability-lab
 
 A self-hosted Prometheus and Grafana monitoring stack built to run without internet access.
@@ -52,6 +54,15 @@ Carry dist/observability-lab-<commit>.tar and its .sha256 file across, then on t
     ./install.sh
 
 The installer verifies every file and image before starting anything, and never pulls from a registry.
+
+## Testing
+
+After `docker compose up -d`, check the whole stack end to end:
+
+    ./scripts/smoke-test.sh
+
+CI runs config validation, the rule tests and this smoke test on every push, and on
+main it also builds the offline bundle and installs it with container registries blocked.
 
 ## Status
 
