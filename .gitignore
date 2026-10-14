@@ -3,3 +3,4 @@ bundle/
 *.tar
 *.tar.gz
 certs/
+prometheus/targets/windows/desktop.yml

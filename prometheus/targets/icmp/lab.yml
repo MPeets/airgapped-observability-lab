@@ -1,0 +1,12 @@
+# Devices checked with ping. Typical for OT gear that can't run an exporter.
+- targets: [node-exporter, grafana]
+  labels:
+    site: lab
+    device_type: server
+
+# Uncomment to simulate an unreachable field device and watch ProbeFailed fire.
+# 192.0.2.10 is a reserved documentation address, so nothing ever answers.
+# - targets: [192.0.2.10]
+#   labels:
+#     site: lab
+#     device_type: plc

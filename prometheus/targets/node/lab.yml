@@ -1,0 +1,6 @@
+# Linux hosts running node_exporter. One file per site or team is a good split.
+# Prometheus re-reads these files on change; no restart or reload needed.
+- targets: ["node-exporter:9100"]
+  labels:
+    site: lab
+    role: docker-host

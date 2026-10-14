@@ -52,6 +52,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: warning
+              os: linux
               job: node
               instance: host-a:9100
             exp_annotations:
@@ -72,6 +73,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
+              os: linux
               job: node
               instance: host-a:9100
               mountpoint: /
@@ -95,6 +97,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: warning
+              os: linux
               job: node
               instance: host-a:9100
               mountpoint: /data
@@ -206,3 +209,71 @@ tests:
       - eval_time: 20m
         alertname: TLSCertExpiryCritical
         exp_alerts: []
+
+  # Windows: same HostHighCpu alert, fed by windows_exporter via recording rules
+  - interval: 1m
+    input_series:
+      - series: 'windows_cpu_time_total{job="windows", instance="host.docker.internal:9182", core="0,0", mode="idle"}'
+        values: '0+3x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: HostHighCpu
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              os: windows
+              job: windows
+              instance: host.docker.internal:9182
+            exp_annotations:
+              summary: "High CPU on host.docker.internal:9182"
+              description: "CPU has been above 90% for 10 minutes (currently 95%)."
+              runbook: docs/runbook.md#hosthighcpu
+
+  # Windows: C: almost full, volume copied into mountpoint
+  - interval: 1m
+    input_series:
+      - series: 'windows_logical_disk_free_bytes{job="windows", instance="host.docker.internal:9182", volume="C:"}'
+        values: '3x10'
+      - series: 'windows_logical_disk_size_bytes{job="windows", instance="host.docker.internal:9182", volume="C:"}'
+        values: '100x10'
+      # Hidden system partitions must be ignored even when full
+      - series: 'windows_logical_disk_free_bytes{job="windows", instance="host.docker.internal:9182", volume="HarddiskVolume1"}'
+        values: '0x10'
+      - series: 'windows_logical_disk_size_bytes{job="windows", instance="host.docker.internal:9182", volume="HarddiskVolume1"}'
+        values: '100x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: HostDiskAlmostFull
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              os: windows
+              job: windows
+              instance: host.docker.internal:9182
+              volume: "C:"
+              mountpoint: "C:"
+            exp_annotations:
+              summary: "Disk C: on host.docker.internal:9182 is almost full"
+              description: "Only 3% free."
+              runbook: docs/runbook.md#hostdiskalmostfull
+
+  # Windows: memory at 95% used
+  - interval: 1m
+    input_series:
+      - series: 'windows_memory_available_bytes{job="windows", instance="host.docker.internal:9182"}'
+        values: '5x20'
+      - series: 'windows_memory_physical_total_bytes{job="windows", instance="host.docker.internal:9182"}'
+        values: '100x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: HostHighMemory
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              os: windows
+              job: windows
+              instance: host.docker.internal:9182
+            exp_annotations:
+              summary: "High memory usage on host.docker.internal:9182"
+              description: "Memory has been above 90% for 10 minutes (currently 95%)."
+              runbook: docs/runbook.md#hosthighmemory

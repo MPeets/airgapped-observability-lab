@@ -27,6 +27,17 @@ Prometheus: http://localhost:9090 (Status > Targets should show the prometheus j
 | blackbox_exporter | Probes from outside: HTTP, ICMP, TCP | Internal network only |
 | tls-demo | HTTPS endpoint signed by the lab CA, for certificate monitoring | Internal network only |
 
+
+## Adding targets
+
+Targets live in prometheus/targets/<job>/*.yml. Add or edit a file and
+Prometheus picks it up automatically, no restart or reload.
+
+    - targets: ["10.0.5.20:9100"]
+      labels:
+        site: substation-north
+        role: scada-server
+
 ## Status
 
 Work in progress.

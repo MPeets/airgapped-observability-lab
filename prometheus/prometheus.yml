@@ -21,17 +21,23 @@ scrape_configs:
     static_configs:
       - targets: ["alertmanager:9093"]
 
+  # Targets come from files in targets/. Add or remove hosts by editing those
+  # files; Prometheus notices the change without a restart or reload.
   - job_name: node
-    static_configs:
-      - targets: ["node-exporter:9100"]
-        labels:
-          site: lab
-          role: docker-host
+    file_sd_configs:
+      - files: [targets/node/*.yml]
+        refresh_interval: 30s
+
+  - job_name: windows
+    file_sd_configs:
+      - files: [targets/windows/*.yml]
+        refresh_interval: 30s
 
   # The exporter's own health. Probe jobs below only say if the TARGET answered.
   - job_name: blackbox-exporter
     static_configs:
       - targets: ["blackbox-exporter:9115"]
+       
 
   - job_name: blackbox-http
     metrics_path: /probe
@@ -56,17 +62,9 @@ scrape_configs:
     metrics_path: /probe
     params:
       module: [icmp]
-    static_configs:
-      - targets: [node-exporter, grafana]
-        labels:
-          site: lab
-          device_type: server
-      # Uncomment to simulate an unreachable field device and watch ProbeFailed fire.
-      # 192.0.2.10 is a reserved documentation address, so nothing ever answers.
-      # - targets: [192.0.2.10]
-      #   labels:
-      #     site: lab
-      #     device_type: plc
+    file_sd_configs:
+      - files: [targets/icmp/*.yml]
+        refresh_interval: 30s
     relabel_configs: *blackbox_relabel
 
   - job_name: blackbox-tls
